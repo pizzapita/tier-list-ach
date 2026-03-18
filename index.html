@@ -100,44 +100,30 @@ function createImage(src){
   wrapper.ondragstart = e=>{ dragged = wrapper; };
   wrapper.ondragend = e=>{ dragged=null; save(); };
 
-  // touch למובייל
-  let offsetX=0, offsetY=0;
-  wrapper.addEventListener("touchstart", e=>{
-    dragged = wrapper;
-    const rect = wrapper.getBoundingClientRect();
-    offsetX = e.touches[0].clientX - rect.left;
-    offsetY = e.touches[0].clientY - rect.top;
-  });
-  wrapper.addEventListener("touchmove", e=>{
-    e.preventDefault();
-    const touch = e.touches[0];
-    wrapper.style.position="absolute";
-    wrapper.style.left = (touch.clientX - offsetX) + "px";
-    wrapper.style.top = (touch.clientY - offsetY) + "px";
-    wrapper.style.zIndex = 1000;
-  });
-  wrapper.addEventListener("touchend", e=>{
-    dragged = null;
-    wrapper.style.position="relative";
-    wrapper.style.left="";
-    wrapper.style.top="";
-    wrapper.style.zIndex="";
-    // בחר את ה-dropzone הקרוב
-    const dropzones = document.querySelectorAll(".dropzone, .pool");
-    let placed = false;
-    dropzones.forEach(zone=>{
-      const rect = zone.getBoundingClientRect();
-      const touch = e.changedTouches[0];
-      if(touch.clientX > rect.left && touch.clientX < rect.right &&
-         touch.clientY > rect.top && touch.clientY < rect.bottom){
-        zone.appendChild(wrapper);
-        placed = true;
-      }
-    });
-    if(!placed) document.querySelector('[data-tier="pool"]').appendChild(wrapper);
-    save();
-  });
+// touch למובייל (גרסה חלקה)
+wrapper.addEventListener("touchstart", e=>{
+  dragged = wrapper;
+});
 
+wrapper.addEventListener("touchmove", e=>{
+  e.preventDefault();
+  const touch = e.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+  if (!element) return;
+
+  const zone = element.closest(".dropzone, .pool");
+  if (zone && dragged) {
+    zone.appendChild(dragged);
+  }
+});
+
+wrapper.addEventListener("touchend", e=>{
+  dragged = null;
+  save();
+});
+
+  
   return wrapper;
 }
 
