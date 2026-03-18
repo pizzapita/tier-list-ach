@@ -88,7 +88,26 @@ function load() {
   // אם אין שמירה — טען תמונות ברירת מחדל
   if (!saved) {
     const defaultImages = [
-      "https://link-to-your-image.jpg"
+      "Screenshot 2026-03-17 at 13.50.14.png",
+      "Screenshot 2026-03-17 at 13.50.29.png",
+      "Screenshot 2026-03-17 at 13.50.35.png",
+      "Screenshot 2026-03-17 at 13.50.40.png",
+      "Screenshot 2026-03-17 at 13.50.44.png",
+      "Screenshot 2026-03-17 at 13.50.48.png",
+      "Screenshot 2026-03-17 at 13.50.54.png",
+      "Screenshot 2026-03-17 at 13.51.03.png",
+      "Screenshot 2026-03-17 at 13.51.07.png",
+      "Screenshot 2026-03-17 at 13.51.11.png",
+      "Screenshot 2026-03-17 at 13.51.15.png",
+      "Screenshot 2026-03-17 at 13.51.19.png",
+      "Screenshot 2026-03-17 at 13.51.24.png",
+      "Screenshot 2026-03-17 at 13.51.28.png",
+      "Screenshot 2026-03-17 at 13.51.32.png",
+      "Screenshot 2026-03-17 at 13.51.36.png",
+      "Screenshot 2026-03-17 at 13.51.39.png",
+      "Screenshot 2026-03-17 at 13.51.43.png",
+      "Screenshot 2026-03-17 at 13.51.48.png",
+      "Screenshot 2026-03-17 at 13.51.53.png"
     ];
 
     const pool = document.querySelector('[data-tier=\"pool\"]');
@@ -102,7 +121,7 @@ function load() {
     return;
   }
 
-  // אחרת טען רגיל
+  // טעינה רגילה
   const data = JSON.parse(saved);
 
   document.querySelectorAll(\".dropzone, .pool\").forEach(z => z.innerHTML = \"\");
