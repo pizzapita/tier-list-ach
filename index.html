@@ -5,39 +5,39 @@
 <title>Tier List</title>
 <style>
   body { font-family: Arial; padding: 20px; background: #111; color: white; }
+  h1 { margin-bottom: 20px; }
   .tier { display: flex; margin-bottom: 10px; }
   .label { width: 150px; padding: 10px; font-weight: bold; text-align: center; }
-  .dropzone, .pool { flex: 1; border: 1px solid #444; min-height: 100px; display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; background:#1a1a1a; }
+  .dropzone, .pool { flex: 1; border: 1px solid #444; min-height: 100px; display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; background:#1a1a1a; position: relative; }
   img { width: 80px; height: 80px; object-fit: contain; background: white; cursor: grab; border: 1px solid #555; }
   .img-wrapper { position: relative; touch-action: none; }
   button { margin-top:10px; }
-  h1 { margin-bottom: 20px; }
 </style>
 </head>
 <body dir="rtl">
 
-<h1>Tier List – האח הגדול כי מה זה משנה כבר יאללה</h1>
+<h1>Tier List – האח הגדול כי יאללה מה זה משנה כבר </h1>
 <button onclick="resetAll()">רענן</button>
 
 <div class="pool" data-tier="pool"></div>
 
 <div class="tier">
-  <div class="label" style="background: lightgreen;"></div>
+  <div class="label" style="background: lightgreen;">אוהב</div>
   <div class="dropzone" data-tier="love"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: khaki;"></div>
+  <div class="label" style="background: khaki;">לא אכפת לי גבוה</div>
   <div class="dropzone" data-tier="high"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: orange;"></div>
+  <div class="label" style="background: orange;">לא אכפת לי נמוך</div>
   <div class="dropzone" data-tier="low"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: lightcoral;"></div>
+  <div class="label" style="background: lightcoral;">שונא</div>
   <div class="dropzone" data-tier="hate"></div>
 </div>
 
@@ -70,7 +70,6 @@ function save() {
 
 function loadImages() {
   const saved = localStorage.getItem("tierList");
-  const pool = document.querySelector('[data-tier="pool"]');
   document.querySelectorAll(".dropzone, .pool").forEach(z => z.innerHTML="");
 
   if(saved){
@@ -80,10 +79,8 @@ function loadImages() {
       document.querySelector(`[data-tier="${item.tier}"]`).appendChild(el);
     });
   } else {
-    defaultImages.forEach(src => {
-      const el = createImage(src);
-      pool.appendChild(el);
-    });
+    const pool = document.querySelector('[data-tier="pool"]');
+    defaultImages.forEach(src => pool.appendChild(createImage(src)));
     save();
   }
 }
@@ -98,12 +95,12 @@ function createImage(src){
 
   wrapper.appendChild(img);
 
-  // drag & drop למחשב
+  // drag למחשב
   wrapper.draggable = true;
   wrapper.ondragstart = e=>{ dragged = wrapper; };
   wrapper.ondragend = e=>{ dragged=null; save(); };
 
-  // touch events למובייל
+  // touch למובייל
   let offsetX=0, offsetY=0;
   wrapper.addEventListener("touchstart", e=>{
     dragged = wrapper;
@@ -125,14 +122,20 @@ function createImage(src){
     wrapper.style.left="";
     wrapper.style.top="";
     wrapper.style.zIndex="";
+    // בחר את ה-dropzone הקרוב
     const dropzones = document.querySelectorAll(".dropzone, .pool");
+    let placed = false;
     dropzones.forEach(zone=>{
       const rect = zone.getBoundingClientRect();
-      if(e.changedTouches[0].clientX > rect.left && e.changedTouches[0].clientX < rect.right &&
-         e.changedTouches[0].clientY > rect.top && e.changedTouches[0].clientY < rect.bottom){
+      const touch = e.changedTouches[0];
+      if(touch.clientX > rect.left && touch.clientX < rect.right &&
+         touch.clientY > rect.top && touch.clientY < rect.bottom){
         zone.appendChild(wrapper);
+        placed = true;
       }
     });
+    // אם לא נמצא אז מחזיר למאגר
+    if(!placed) document.querySelector('[data-tier="pool"]').appendChild(wrapper);
     save();
   });
 
