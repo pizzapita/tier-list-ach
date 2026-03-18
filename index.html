@@ -1,150 +1,177 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-  <meta charset="UTF-8">
-  <title>Tier List</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #111; color: white; }
-    .tier { display: flex; margin-bottom: 10px; }
-    .label { width: 150px; padding: 10px; font-weight: bold; text-align: center; }
-    .dropzone, .pool { flex: 1; border: 1px solid #444; min-height: 100px; display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; background:#1a1a1a; }
-
-    img {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      background: white;
-      cursor: grab;
-      border: 1px solid #555;
-      position: relative;
-    }
-
-    .img-wrapper {
-      position: relative;
-    }
-
-    button { margin-top:10px; }
-  </style>
+<meta charset="UTF-8">
+<title>Tier List</title>
+<style>
+  body { font-family: Arial; padding: 20px; background: #111; color: white; }
+  .tier { display: flex; margin-bottom: 10px; }
+  .label { width: 150px; padding: 10px; font-weight: bold; text-align: center; }
+  .dropzone, .pool { flex: 1; border: 1px solid #444; min-height: 100px; display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; background:#1a1a1a; }
+  img { width: 80px; height: 80px; object-fit: contain; background: white; cursor: grab; border: 1px solid #555; }
+  .img-wrapper { position: relative; touch-action: none; }
+  button { margin-top:10px; }
+  h1 { margin-bottom: 20px; }
+</style>
 </head>
 <body dir="rtl">
 
-<h1>Tier List</h1>
+<h1>Tier List – האח הגדול כי מה זה משנה כבר</h1>
 <button onclick="resetAll()">רענן</button>
 
-<h2>Pool</h2>
 <div class="pool" data-tier="pool"></div>
 
 <div class="tier">
-  <div class="label" style="background: lightgreen;">אוהב</div>
+  <div class="label" style="background: lightgreen;"></div>
   <div class="dropzone" data-tier="love"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: khaki;">לא אכפת לי גבוה</div>
+  <div class="label" style="background: khaki;"></div>
   <div class="dropzone" data-tier="high"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: orange;">לא אכפת לי נמוך</div>
+  <div class="label" style="background: orange;"></div>
   <div class="dropzone" data-tier="low"></div>
 </div>
 
 <div class="tier">
-  <div class="label" style="background: lightcoral;">שונא</div>
+  <div class="label" style="background: lightcoral;"></div>
   <div class="dropzone" data-tier="hate"></div>
 </div>
 
 <script>
-let dragged = null;
-
 // תמונות ברירת מחדל
 const defaultImages = [
-  "images/13.50.14.png",
-  "images/13.50.29.png",
-  "images/13.50.35.png",
-  "images/13.50.40.png",
-  "images/13.50.44.png",
-  "images/13.50.48.png",
-  "images/13.50.54.png",
-  "images/13.51.03.png",
-  "images/13.51.07.png",
-  "images/13.51.11.png",
-  "images/13.51.15.png",
-  "images/13.51.19.png",
-  "images/13.51.24.png",
-  "images/13.51.28.png",
-  "images/13.51.32.png",
-  "images/13.51.36.png",
-  "images/13.51.39.png",
-  "images/13.51.43.png",
-  "images/13.51.48.png",
-  "images/13.51.53.png"
+  "images/13.50.14.png","images/13.50.29.png","images/13.50.35.png",
+  "images/13.50.40.png","images/13.50.44.png","images/13.50.48.png",
+  "images/13.50.54.png","images/13.51.03.png","images/13.51.07.png",
+  "images/13.51.11.png","images/13.51.15.png","images/13.51.19.png",
+  "images/13.51.24.png","images/13.51.28.png","images/13.51.32.png",
+  "images/13.51.36.png","images/13.51.39.png","images/13.51.43.png",
+  "images/13.51.48.png","images/13.51.53.png"
 ];
 
-// טען את התמונות למאגר
-function loadImages() {
-  const pool = document.querySelector('[data-tier="pool"]');
-  pool.innerHTML = ""; // נקה קודם
-  defaultImages.forEach(src => {
-    const el = createImage(src);
-    pool.appendChild(el);
+let dragged = null;
+
+// שמירה וטעינה
+function save() {
+  const data = [];
+  document.querySelectorAll(".dropzone, .pool").forEach(zone => {
+    const tier = zone.dataset.tier;
+    Array.from(zone.children).forEach((wrapper,index)=>{
+      const img = wrapper.querySelector("img");
+      data.push({src: img.src, tier, order: index});
+    });
   });
+  localStorage.setItem("tierList", JSON.stringify(data));
 }
 
-// צור wrapper עם תמונה בלבד (ללא כפתור מחיקה)
-function createImage(src) {
+function loadImages() {
+  const saved = localStorage.getItem("tierList");
+  const pool = document.querySelector('[data-tier="pool"]');
+  document.querySelectorAll(".dropzone, .pool").forEach(z => z.innerHTML="");
+
+  if(saved){
+    const data = JSON.parse(saved).sort((a,b)=>a.order-b.order);
+    data.forEach(item => {
+      const el = createImage(item.src);
+      document.querySelector(`[data-tier="${item.tier}"]`).appendChild(el);
+    });
+  } else {
+    defaultImages.forEach(src => {
+      const el = createImage(src);
+      pool.appendChild(el);
+    });
+    save();
+  }
+}
+
+// צור תמונה
+function createImage(src){
   const wrapper = document.createElement("div");
   wrapper.className = "img-wrapper";
-  wrapper.draggable = true;
 
   const img = document.createElement("img");
   img.src = src;
 
   wrapper.appendChild(img);
 
-  wrapper.ondragstart = () => dragged = wrapper;
-  wrapper.ondragend = () => dragged = null;
+  // drag & drop למחשב
+  wrapper.draggable = true;
+  wrapper.ondragstart = e=>{ dragged = wrapper; };
+  wrapper.ondragend = e=>{ dragged=null; save(); };
+
+  // touch events למובייל
+  let offsetX=0, offsetY=0;
+  wrapper.addEventListener("touchstart", e=>{
+    dragged = wrapper;
+    const rect = wrapper.getBoundingClientRect();
+    offsetX = e.touches[0].clientX - rect.left;
+    offsetY = e.touches[0].clientY - rect.top;
+  });
+  wrapper.addEventListener("touchmove", e=>{
+    e.preventDefault();
+    const touch = e.touches[0];
+    wrapper.style.position="absolute";
+    wrapper.style.left = (touch.clientX - offsetX) + "px";
+    wrapper.style.top = (touch.clientY - offsetY) + "px";
+    wrapper.style.zIndex = 1000;
+  });
+  wrapper.addEventListener("touchend", e=>{
+    dragged = null;
+    wrapper.style.position="relative";
+    wrapper.style.left="";
+    wrapper.style.top="";
+    wrapper.style.zIndex="";
+    const dropzones = document.querySelectorAll(".dropzone, .pool");
+    dropzones.forEach(zone=>{
+      const rect = zone.getBoundingClientRect();
+      if(e.changedTouches[0].clientX > rect.left && e.changedTouches[0].clientX < rect.right &&
+         e.changedTouches[0].clientY > rect.top && e.changedTouches[0].clientY < rect.bottom){
+        zone.appendChild(wrapper);
+      }
+    });
+    save();
+  });
 
   return wrapper;
 }
 
-// Drag + reorder
-function setupZones() {
-  document.querySelectorAll(".dropzone, .pool").forEach(zone => {
-    zone.ondragover = (e) => {
+// Drag + reorder במחשב
+function setupZones(){
+  document.querySelectorAll(".dropzone, .pool").forEach(zone=>{
+    zone.ondragover = e=>{
       e.preventDefault();
-      const afterElement = getDragAfterElement(zone, e.clientX);
-      if (afterElement == null) {
-        zone.appendChild(dragged);
-      } else {
-        zone.insertBefore(dragged, afterElement);
-      }
+      const afterElement = getDragAfterElement(zone,e.clientX);
+      if(afterElement==null) zone.appendChild(dragged);
+      else zone.insertBefore(dragged,afterElement);
     };
+    zone.ondrop = e=>{ e.preventDefault(); save(); };
   });
 }
 
-function getDragAfterElement(container, x) {
+// חשב מיקום להכניס את התמונות
+function getDragAfterElement(container, x){
   const elements = [...container.querySelectorAll(".img-wrapper:not(.dragging)")];
-  return elements.reduce((closest, child) => {
+  return elements.reduce((closest, child)=>{
     const box = child.getBoundingClientRect();
-    const offset = x - box.left - box.width / 2;
-    if (offset < 0 && offset > closest.offset) {
-      return { offset: offset, element: child };
-    } else {
-      return closest;
-    }
-  }, { offset: Number.NEGATIVE_INFINITY }).element;
+    const offset = x - box.left - box.width/2;
+    if(offset<0 && offset>closest.offset) return {offset:offset, element:child};
+    else return closest;
+  },{offset:Number.NEGATIVE_INFINITY}).element;
 }
 
-// רענון – מחזיר את כל התמונות למאגר
-function resetAll() {
-  document.querySelectorAll(".dropzone").forEach(z => z.innerHTML = "");
+// רענון
+function resetAll(){
+  document.querySelectorAll(".dropzone").forEach(z=>z.innerHTML="");
+  localStorage.removeItem("tierList");
   loadImages();
 }
 
 setupZones();
 loadImages();
 </script>
-
 </body>
 </html>
