@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8">
-<title>Tier List – האח הגדול</title>
+<title>Tier List – האח הגדול כי יאללה מה זה משנה </title>
 <style>
   body { font-family: Arial; padding: 20px; background: #111; color: white; }
   h1 { margin-bottom: 20px; }
@@ -16,7 +16,7 @@
 </head>
 <body dir="rtl">
 
-<h1>Tier List – האח הגדול כי יאללה מה זה משנה</h1>
+<h1>Tier List – האח הגדול</h1>
 <button onclick="resetAll()">רענן</button>
 
 <div class="pool" data-tier="pool"></div>
@@ -42,16 +42,16 @@
 </div>
 
 <script>
-// תמונות ברירת מחדל
+// החלף USERNAME בשם המשתמש שלך ב-GitHub, ו-tier-list בשם ה-repo שלך
+const repoBase = "https://USERNAME.github.io/tier-list/images/";
+
 const defaultImages = [
-  "images/13.50.14.png","images/13.50.29.png","images/13.50.35.png",
-  "images/13.50.40.png","images/13.50.44.png","images/13.50.48.png",
-  "images/13.50.54.png","images/13.51.03.png","images/13.51.07.png",
-  "images/13.51.11.png","images/13.51.15.png","images/13.51.19.png",
-  "images/13.51.24.png","images/13.51.28.png","images/13.51.32.png",
-  "images/13.51.36.png","images/13.51.39.png","images/13.51.43.png",
-  "images/13.51.48.png","images/13.51.53.png"
-];
+  "13.50.14.png","13.50.29.png","13.50.35.png","13.50.40.png",
+  "13.50.44.png","13.50.48.png","13.50.54.png","13.51.03.png",
+  "13.51.07.png","13.51.11.png","13.51.15.png","13.51.19.png",
+  "13.51.24.png","13.51.28.png","13.51.32.png","13.51.36.png",
+  "13.51.39.png","13.51.43.png","13.51.48.png","13.51.53.png"
+].map(name => repoBase + name);
 
 let dragged = null;
 
@@ -156,4 +156,24 @@ function setupZones(){
 
 // חשב מיקום להכניס את התמונות
 function getDragAfterElement(container, x){
-  const elements = [...container.querySelectorAll(".img-wrapper
+  const elements = [...container.querySelectorAll(".img-wrapper:not(.dragging)")];
+  return elements.reduce((closest, child)=>{
+    const box = child.getBoundingClientRect();
+    const offset = x - box.left - box.width/2;
+    if(offset<0 && offset>closest.offset) return {offset:offset, element:child};
+    else return closest;
+  },{offset:Number.NEGATIVE_INFINITY}).element;
+}
+
+// רענון
+function resetAll(){
+  document.querySelectorAll(".dropzone").forEach(z=>z.innerHTML="");
+  localStorage.removeItem("tierList");
+  loadImages();
+}
+
+setupZones();
+loadImages();
+</script>
+</body>
+</html>
