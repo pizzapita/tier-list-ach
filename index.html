@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>Tier List</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #111; color: white; }
+    .tier { display: flex; margin-bottom: 10px; }
+    .label { width: 150px; padding: 10px; font-weight: bold; text-align: center; }
+    .dropzone, .pool { flex: 1; border: 1px solid #444; min-height: 100px; display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; background:#1a1a1a; }
+
+    img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: white;
+      cursor: grab;
+      border: 1px solid #555;
+      position: relative;
+    }
+
+    .img-wrapper {
+      position: relative;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    button { margin-top:10px; }
+  </style>
+</head>
+<body>
+
+<h1>Tier List</h1>
+<input type="file" multiple onchange="upload(event)">
+<button onclick="clearAll()">נקה הכל</button>
+<button onclick="exportImage()">ייצא כתמונה</button>
+
+<h2>Pool</h2>
+<div class="pool" data-tier="pool"></div>
+
+<div class="tier">
+  <div class="label" style="background: lightgreen;">אוהב</div>
+  <div class="dropzone" data-tier="love"></div>
+</div>
+
+<div class="tier">
+  <div class="label" style="background: khaki;">לא אכפת לי גבוה</div>
+  <div class="dropzone" data-tier="high"></div>
+</div>
+
+<div class="tier">
+  <div class="label" style="background: orange;">לא אכפת לי נמוך</div>
+  <div class="dropzone" data-tier="low"></div>
+</div>
+
+<div class="tier">
+  <div class="label" style="background: lightcoral;">שונא</div>
+  <div class="dropzone" data-tier="hate"></div>
+</div>
+
+<script>
+let dragged = null;
+
+function save() {
+  const data = [];
+  document.querySelectorAll(".dropzone, .pool").forEach(zone => {
+    const tier = zone.dataset.tier;
+    Array.from(zone.children).forEach((wrapper, index) => {
+      const img = wrapper.querySelector("img");
+      data.push({ src: img.src, tier, order: index });
+    });
+  });
+  localStorage.setItem("tierList", JSON.stringify(data));
+}
+
+function load() {
+  const data = JSON.parse(localStorage.getItem("tierList") || "[]");
+  document.querySelectorAll(".dropzone, .pool").forEach(z => z.innerHTML = "");
+
+  data.sort((a, b) => a.order - b.order);
+
+  data.forEach(item => {
+    const el = createImage(item.src);
+    const zone = document.querySelector(`[data-tier="${item.tier}"]`);
+    zone.appendChild(el);
+  });
+}
+
+function createImage(src) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "img-wrapper";
+  wrapper.draggable = true;
+
+  const img = document.createElement("img");
+  img.src = src;
+
+  const btn = document.createElement("button");
+  btn.innerText = "×";
+  btn.className = "delete-btn";
+  btn.onclick = () => { wrapper.remove(); save(); };
+
+  wrapper.appendChild(img);
+  wrapper.appendChild(btn);
+
+  wrapper.ondragstart = () => dragged = wrapper;
+
+  return wrapper;
+}
+
+function upload(event) {
+  const files = event.target.files;
+  const pool = document.querySelector('[data-tier="pool"]');
+
+  for (let file of files) {
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const el = createImage(e.target.result);
+      pool.appendChild(el);
+      save();
+    };
+
+    reader.readAsDataURL(file);
+  }
+}
+
+// Drag + reorder
+function setupZones() {
+  document.querySelectorAll(".dropzone, .pool").forEach(zone => {
+    zone.ondragover = (e) => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(zone, e.clientX);
+      if (afterElement == null) {
+        zone.appendChild(dragged);
+      } else {
+        zone.insertBefore(dragged, afterElement);
+      }
+    };
+
+    zone.ondrop = (e) => {
+      e.preventDefault();
+      save();
+    };
+  });
+}
+
+function getDragAfterElement(container, x) {
+  const elements = [...container.querySelectorAll(".img-wrapper:not(.dragging)")];
+
+  return elements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = x - box.left - box.width / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function clearAll() {
+  localStorage.removeItem("tierList");
+  load();
+}
+
+function exportImage() {
+  alert("טיפ: תעשה צילום מסך 😄 (אפשר להוסיף ייצוא אמיתי אם תרצה)");
+}
+
+setupZones();
+load();
+</script>
+
+</body>
+</html>
