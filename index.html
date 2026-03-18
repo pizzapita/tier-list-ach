@@ -23,26 +23,13 @@
       position: relative;
     }
 
-    .delete-btn {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
     button { margin-top:10px; }
   </style>
 </head>
-<body>
+<body dir="rtl">
 
 <h1>Tier List</h1>
-<input type="file" multiple onchange="upload(event)">
-<button onclick="clearAll()">נקה הכל</button>
-<button onclick="exportImage()">ייצא כתמונה</button>
+<button onclick="resetAll()">רענן</button>
 
 <h2>Pool</h2>
 <div class="pool" data-tier="pool"></div>
@@ -70,24 +57,8 @@
 <script>
 let dragged = null;
 
-function save() {
-  const data = [];
-  document.querySelectorAll(".dropzone, .pool").forEach(zone => {
-    const tier = zone.dataset.tier;
-    Array.from(zone.children).forEach((wrapper, index) => {
-      const img = wrapper.querySelector("img");
-      data.push({ src: img.src, tier, order: index });
-    });
-  });
-  localStorage.setItem("tierList", JSON.stringify(data));
-}
-
-function load() {
-  const saved = localStorage.getItem("tierList");
-
-  // אם אין שמירה — טען תמונות ברירת מחדל
-  if (!saved) {
-    const defaultImages = [
+// תמונות ברירת מחדל
+const defaultImages = [
   "images/13.50.14.png",
   "images/13.50.29.png",
   "images/13.50.35.png",
@@ -110,31 +81,17 @@ function load() {
   "images/13.51.53.png"
 ];
 
-    const pool = document.querySelector('[data-tier=\"pool\"]');
-
-    defaultImages.forEach(src => {
-      const el = createImage(src);
-      pool.appendChild(el);
-    });
-
-    save();
-    return;
-  }
-
-  // טעינה רגילה
-  const data = JSON.parse(saved);
-
-  document.querySelectorAll(\".dropzone, .pool\").forEach(z => z.innerHTML = \"\");
-
-  data.sort((a, b) => a.order - b.order);
-
-  data.forEach(item => {
-    const el = createImage(item.src);
-    const zone = document.querySelector(`[data-tier=\"${item.tier}\"]`);
-    zone.appendChild(el);
+// טען את התמונות למאגר
+function loadImages() {
+  const pool = document.querySelector('[data-tier="pool"]');
+  pool.innerHTML = ""; // נקה קודם
+  defaultImages.forEach(src => {
+    const el = createImage(src);
+    pool.appendChild(el);
   });
 }
 
+// צור wrapper עם תמונה בלבד (ללא כפתור מחיקה)
 function createImage(src) {
   const wrapper = document.createElement("div");
   wrapper.className = "img-wrapper";
@@ -143,34 +100,12 @@ function createImage(src) {
   const img = document.createElement("img");
   img.src = src;
 
-  const btn = document.createElement("button");
-  btn.innerText = "×";
-  btn.className = "delete-btn";
-  btn.onclick = () => { wrapper.remove(); save(); };
-
   wrapper.appendChild(img);
-  wrapper.appendChild(btn);
 
   wrapper.ondragstart = () => dragged = wrapper;
+  wrapper.ondragend = () => dragged = null;
 
   return wrapper;
-}
-
-function upload(event) {
-  const files = event.target.files;
-  const pool = document.querySelector('[data-tier="pool"]');
-
-  for (let file of files) {
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      const el = createImage(e.target.result);
-      pool.appendChild(el);
-      save();
-    };
-
-    reader.readAsDataURL(file);
-  }
 }
 
 // Drag + reorder
@@ -185,17 +120,11 @@ function setupZones() {
         zone.insertBefore(dragged, afterElement);
       }
     };
-
-    zone.ondrop = (e) => {
-      e.preventDefault();
-      save();
-    };
   });
 }
 
 function getDragAfterElement(container, x) {
   const elements = [...container.querySelectorAll(".img-wrapper:not(.dragging)")];
-
   return elements.reduce((closest, child) => {
     const box = child.getBoundingClientRect();
     const offset = x - box.left - box.width / 2;
@@ -207,17 +136,14 @@ function getDragAfterElement(container, x) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-function clearAll() {
-  localStorage.removeItem("tierList");
-  load();
-}
-
-function exportImage() {
-  alert("טיפ: תעשה צילום מסך 😄 (אפשר להוסיף ייצוא אמיתי אם תרצה)");
+// רענון – מחזיר את כל התמונות למאגר
+function resetAll() {
+  document.querySelectorAll(".dropzone").forEach(z => z.innerHTML = "");
+  loadImages();
 }
 
 setupZones();
-load();
+loadImages();
 </script>
 
 </body>
