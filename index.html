@@ -83,14 +83,35 @@ function save() {
 }
 
 function load() {
-  const data = JSON.parse(localStorage.getItem("tierList") || "[]");
-  document.querySelectorAll(".dropzone, .pool").forEach(z => z.innerHTML = "");
+  const saved = localStorage.getItem("tierList");
+
+  // אם אין שמירה — טען תמונות ברירת מחדל
+  if (!saved) {
+    const defaultImages = [
+      "https://link-to-your-image.jpg"
+    ];
+
+    const pool = document.querySelector('[data-tier=\"pool\"]');
+
+    defaultImages.forEach(src => {
+      const el = createImage(src);
+      pool.appendChild(el);
+    });
+
+    save();
+    return;
+  }
+
+  // אחרת טען רגיל
+  const data = JSON.parse(saved);
+
+  document.querySelectorAll(\".dropzone, .pool\").forEach(z => z.innerHTML = \"\");
 
   data.sort((a, b) => a.order - b.order);
 
   data.forEach(item => {
     const el = createImage(item.src);
-    const zone = document.querySelector(`[data-tier="${item.tier}"]`);
+    const zone = document.querySelector(`[data-tier=\"${item.tier}\"]`);
     zone.appendChild(el);
   });
 }
